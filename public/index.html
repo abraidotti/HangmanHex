@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hangman Hex</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    h1,
+    h3 {
+      margin-left: 8px;
+      font-weight: 200;
+    }
+
+    h1 {
+      margin-top: 10px;
+    }
+
+    .container {
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .form-box {
+      border: 1px solid black;
+      width: 30%;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 25px;
+    }
+
+    /* space out the underscores and embiggen answer */
+
+    #game-display {
+      font-size: 3em;
+      letter-spacing: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Guess the background color name</h1>
+    <h3>A super serious training tool for web designers.</h3>
+    <br>
+    <div class="form-box">
+      <form>
+        <label for="guess">Guess a letter:</label>
+        <input type="text" id="guess" maxlength="1" autofocus>
+        <input type="submit">
+      </form>
+    </div>
+    <br>
+    <div id="game-display"></div>
+    <br>
+    <div id="guess-text"></div>
+    <div>
+      <button class="hidden" id="restart">Restart</button>
+    </div>
+    <br>
+    <div><span id="previous-tries"></span>
+    </div>
+    <p>Possible score:<span id="possible-score"></span></p>
+    <br>
+    <p>Current score:<span id="current-score"></span></p>
+    <br>
+    <div id="result"></div>
+    <div id="hex-code"></div>
+    <div id="color-family"></div>
+    <div>
+      <button id="hint-button">Extra hint (-3 pts)</button>
+    </div>
+    <div id="hint-text" class="hidden"></div>
+  </div>
+
+  <script>
+    // HTML elements
+    const form = document.forms[0];
+    const gameDisplay = document.getElementById("game-display");
+    const guessText = document.getElementById("guess-text");
+    const submitBtn = document.querySelector("input[type=submit]");
+    const restartBtn = document.getElementById("restart");
+    const hexCode = document.getElementById("hex-code");
+    const colorFamily = document.getElementById("color-family");
+    const hintBtn = document.getElementById("hint-button");
+    const hintText = document.getElementById("hint-text");
+    const possibleScore = document.getElementById("possible-score");
+    const currentScore = document.getElementById("current-score");
+    const previousTries = document.getElementById("previous-tries");
+
+    // color data
+    const colorList = [
+      {
+        color: "white",
+        hex: "#ffffff",
+        family: "white",
+        hint: "you totally don't need a hint for this"
+      },
+      {
+        color: "aquamarine",
+        hex: "#7fffd4",
+        family: "blue",
+        hint: "two words for 'under the sea'"
+      },
+      {
+        color: "lightsalmon",
+        hex: "#ffa07a",
+        family: "red",
+        hint: "like the mountain fish full of Omega 3s"
+      },
+      {
+        color: "tan",
+        hex: "#D2B48C",
+        family: "brown",
+        hint: "like when you get some sun"
+      },
+      {
+        color: "chocolate",
+        hex: "#D2B48C",
+        family: "brown",
+        hint: "like when you get some sun"
+      }
+    ];
+
+    // game data
+    let answer, currentDisplayedString, maxScore, score;
+    let previousTriesArray = [];
+
+    // Game Logic
+    function startGame() {
+      // make sure the buttons are enabled and hint hidden after previous game
+      submitBtn.removeAttribute("disabled");
+      hintBtn.removeAttribute("disabled");
+      hintText.classList.add("hidden");
+
+      // obtain answer
+      answer = grabColor();
+
+      // set initial answer display string
+      gameDisplay.textContent = [...answer.color].fill("_").join("");
+      currentDisplayedString = gameDisplay.textContent;
+
+      // set initial scores
+      // max score = base of 4 + a point for each letter in answer
+      maxScore = 4 + answer.color.length;
+      score = maxScore;
+      possibleScore.textContent = maxScore;
+      currentScore.textContent = score;
+
+      // set background color, hex code, color family
+      document.body.style.background = answer.color;
+      hexCode.textContent = "Hex code: " + answer.hex;
+      colorFamily.textContent = "Color family: " + answer.family;
+      hintText.textContent = answer.hint;
+
+      // process hint display button
+      hintBtn.addEventListener("click", function() {
+        hintBtn.setAttribute("disabled", "true");
+        hintText.classList.remove("hidden");
+        score = score - 3;
+        updateScore();
+      });
+
+      // process guesses
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        processGuess(form.guess.value);
+      });
+    } // end startGame function
+
+    // game functions:
+
+    // grab a color from the array of color objects
+    function grabColor() {
+      return colorList[Math.floor(Math.random() * colorList.length)];
+    }
+
+    // process a guess
+    function processGuess(guess) {
+      // first clear the guess text
+      guessText.textContent = "";
+      // if good guess
+      if (isValidGuess(guess) && answer.color.includes(guess)) {
+        currentDisplayedString = updateDisplayedString(
+          currentDisplayedString,
+          answer.color,
+          guess
+        );
+        gameDisplay.textContent = currentDisplayedString;
+        form.reset();
+        renderPreviousTries();
+        guessText.textContent = "Good guess!";
+      } else if (isValidGuess(guess) && !previousTriesArray.includes(guess)) {
+        // if guess is valid but not found in answer
+        guessText.textContent = "Nope!";
+        previousTriesArray.push(guess);
+        form.reset();
+        renderPreviousTries();
+        score--;
+      } else if (isValidGuess(guess) && previousTriesArray.includes(guess)) {
+        // if guess was already tried
+        guessText.textContent = "You already tried that!";
+        form.reset();
+      } else {
+        // if invalid guess
+        guessText.textContent = "Valid character, please!";
+        form.reset();
+      }
+
+      updateScore();
+    } // end processGuess function
+
+    // check validity of guess when submitting form
+    function isValidGuess(char) {
+      return char.length === 1 && /[a-z]/i.test(char);
+    }
+
+    // update the displayed string
+    function updateDisplayedString(displayedString, answerString, char) {
+      let answerArray = answerString.split("");
+      let displayArray = displayedString.split("");
+
+      for (let n = 0; n < answerString.length; n++) {
+        if (answerArray[n] === char) displayArray[n] = char;
+      }
+
+      return displayArray.join("");
+    }
+
+    // display list of incorrect guesses
+    function renderPreviousTries() {
+      previousTries.textContent =
+        "Incorrect characters: " + previousTriesArray.join(" ");
+    }
+
+    // calculate score
+    function updateScore() {
+      currentScore.textContent = score;
+      //check if win
+      if (currentDisplayedString === answer.color) {
+        guessText.textContent = "You guessed it! Nice job.";
+        restartBtn.classList.remove("hidden");
+        submitBtn.setAttribute("disabled", "true");
+        hintBtn.setAttribute("disabled", "true");
+      }
+      // check if lose
+      if (score === 0) {
+        guessText.textContent = "Game over.";
+        restartBtn.classList.remove("hidden");
+        submitBtn.setAttribute("disabled", "true");
+        hintBtn.setAttribute("disabled", "true");
+      }
+    }
+
+    restartBtn.addEventListener("click", startGame);
+
+    // start game on load
+    window.addEventListener("load", function() {
+      startGame();
+    });
+  </script>
+</body>
+
+</html>
