@@ -153,7 +153,7 @@
         color: "plum",
         hex: "#DDA0DD",
         family: "purple",
-        hint: "We consume this fruit fresh or dried."
+        hint: "We consume this fruit either fresh or dried."
       },
       {
         color: "hotpink",
@@ -165,7 +165,43 @@
         color: "silver",
         hex: "#C0C0C0",
         family: "gray",
-        hint: "Like fine diningware."
+        hint: "Like fine, shiny diningware."
+      },
+      {
+        color: "firebrick",
+        hex: "#B22222",
+        family: "red",
+        hint: "Roasted structural building blocks."
+      },
+      {
+        color: "tomato",
+        hex: "#FF6347",
+        family: "red",
+        hint: "Is it a fruit or a vegetable?"
+      },
+      {
+        color: "khaki",
+        hex: "#F0E68C",
+        family: "yellow",
+        hint: "Easy to wear, hard to spell. Think about pants."
+      },
+      {
+        color: "lavender",
+        hex: "#E6E6FA",
+        family: "purple",
+        hint: "This elegant floral scent is also a roadside weed."
+      },
+      {
+        color: "olivedrab",
+        hex: "#6B8E23",
+        family: "green",
+        hint: "A compound camouflage -- part edible, part boring."
+      },
+      {
+        color: "honeydew",
+        hex: "#F0FFF0",
+        family: "white",
+        hint: "Think: breakfast melon."
       }
     ];
 
@@ -179,6 +215,8 @@
       submitBtn.removeAttribute("disabled");
       hintBtn.removeAttribute("disabled");
       hintText.classList.add("hidden");
+      previousTriesArray.length = 0;
+      previousTries.textContent = '';
 
       // obtain answer
       answer = grabColor();
@@ -264,6 +302,7 @@
 
     // update the displayed string
     function updateDisplayedString(displayedString, answerString, char) {
+      // gotta first turn the strings into arrays
       let answerArray = answerString.split("");
       let displayArray = displayedString.split("");
 
