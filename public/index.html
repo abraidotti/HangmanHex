@@ -204,19 +204,12 @@
         hint: "Think: breakfast melon."
       }
     ];
-
     // game data
-    let answer, currentDisplayedString, maxScore, score;
+    let answer, maxScore, currentDisplayedString, score;
     let previousTriesArray = [];
 
     // Game Logic
-    function startGame() {
-      // make sure the buttons are enabled and hint hidden after previous game
-      submitBtn.removeAttribute("disabled");
-      hintBtn.removeAttribute("disabled");
-      hintText.classList.add("hidden");
-      previousTriesArray.length = 0;
-      previousTries.textContent = '';
+  function startGame() {
 
       // obtain answer
       answer = grabColor();
@@ -231,7 +224,6 @@
       score = maxScore;
       possibleScore.textContent = maxScore;
       currentScore.textContent = score;
-
       // set background color, hex code, color family
       document.body.style.background = answer.color;
       hexCode.textContent = "Hex code: " + answer.hex;
@@ -240,9 +232,9 @@
 
       // process hint display button
       hintBtn.addEventListener("click", function() {
+        score = score - 3;
         hintBtn.setAttribute("disabled", "true");
         hintText.classList.remove("hidden");
-        score = score - 3;
         updateScore();
       });
 
@@ -321,7 +313,9 @@
 
     // calculate score
     function updateScore() {
+
       currentScore.textContent = score;
+
       //check if win
       if (currentDisplayedString === answer.color) {
         guessText.textContent = "You guessed it! Nice job.";
@@ -330,7 +324,7 @@
         hintBtn.setAttribute("disabled", "true");
       }
       // check if lose
-      if (score === 0) {
+      if (score <= 0) {
         guessText.textContent = "Game over.";
         restartBtn.classList.remove("hidden");
         submitBtn.setAttribute("disabled", "true");
@@ -338,7 +332,9 @@
       }
     }
 
-    restartBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", function(){
+      window.location.reload(true);
+    });
 
     // start game on load
     window.addEventListener("load", function() {
